@@ -24,6 +24,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.ChunkSource;
 
 public class EnergyNetLocal
@@ -151,6 +152,33 @@ public class EnergyNetLocal
 		{
 			this.gridChangesQueue.add(change);
 		}
+	}
+
+	// 重新排队一个因 chunk 尚未加载而在 prepareSync 中被拒绝的 ADDITION，
+	// 待 chunk 加载完成后由下一个 tick 的 onTickEnd 再次处理。
+	void requeueAddition(GridChange change)
+	{
+		if (this.gridAdditionsMap.putIfAbsent(change.ioTile, change) == null)
+		{
+			this.gridChangesQueue.add(change);
+		}
+	}
+
+	// 判断一个待重试的 ADDITION 是否仍然有效（仅当世界/坐标一致且方块未移除时才能重试，
+	// 避免在方块已消失的情况下无限重排）。
+	boolean isTileStillValidForRetry(IEnergyTile ioTile, BlockPos pos)
+	{
+		if (EnergyNet.instance.getWorld(ioTile) != this.world)
+		{
+			return false;
+		}
+
+		if (!EnergyNet.instance.getPos(ioTile).equals(pos))
+		{
+			return false;
+		}
+
+		return !(ioTile instanceof BlockEntity) || !((BlockEntity) ioTile).isRemoved();
 	}
 
 	void removeTile(IEnergyTile ioTile, BlockPos pos)

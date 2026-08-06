@@ -7,6 +7,7 @@ import ic2.core.util.LogCategory;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -163,8 +164,26 @@ class GridUpdater implements Runnable
 
 	private void prepareUpdate()
 	{
+		Iterator<GridChange> it = this.changes.iterator();
+		while (it.hasNext())
+		{
+			GridChange change = it.next();
+			if (ChangeHandler.prepareSync(this.enet, change))
+			{
+				continue;
+			}
 
-		this.changes.removeIf(change -> !ChangeHandler.prepareSync(this.enet, change));
+			it.remove();
+			// prepareSync 会以 "was unloaded in grid update" 拒绝尚未完全加载的方块。
+			// 若直接丢弃该 ADDITION，此方块将永远不会接入能量网络（有电也传不出去），
+			// 直到所在 chunk 被卸载后重新加载。这里把它重新排队，等待下一 tick 重试。
+			if (change.type == GridChange.Type.ADDITION
+				&& !this.enet.getWorld().isLoaded(change.pos)
+				&& this.enet.isTileStillValidForRetry(change.ioTile, change.pos))
+			{
+				this.enet.requeueAddition(change);
+			}
+		}
 	}
 
 	private void updateGrid()
