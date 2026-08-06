@@ -6,6 +6,17 @@
 <img src="https://img.shields.io/badge/Version-2.10.33--ex120-blue" alt="Version 2.10.33-ex120">
 <img src="https://img.shields.io/badge/License-ARR-red" alt="License ARR">
 
+## 本仓库说明
+
+本仓库是 [工业时代 2：重构](https://github.com/craftorio/IC2R) 的分支（fork），**上游原始地址**：`https://github.com/craftorio/IC2R`。
+
+本仓库的作用：在上游代码基础上修复一些 Bug，使其能在大型整合包中稳定运行。目前已包含的修复：
+
+- **修复与机械动力（Create）等模组兼容时经典 IC2 物品 ID 无法识别的问题**：将 `ic2:ingot_silver` 等经典 ID 重映射到重构版的实际物品，并跳过引用不存在物品的配方，避免配方解析时崩溃；同时不会误判 `type`/`tag` 字段，保证 IC2 自身配方正常加载。
+- **修复能量网格在 chunk 尚未加载时丢弃方块注册的问题**：进入世界/加载存档时，因 chunk 未完全加载而被拒绝的方块注册请求现在会重新排队、自动重试，修复了发电机等方块有电却无法向相连机器/电线传电的问题。
+
+> 注：上方徽章与下方内容均为上游原说明，仅供对照。
+
 本项目代码基于官方构建版本 `2.9.40-ex119` 反编译得到，并从 `2.8.222-ex112` 迁移了缺失与错误的功能。
 
 ## 写在前面
