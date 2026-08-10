@@ -68,7 +68,20 @@ public class GuiParser
 		}
 	}
 
-	private static GuiParser.GuiNode parse(InputStream is, Class<?> baseClass) throws SAXException, IOException
+	/**
+	 * Parses a dynamic GUI definition from a caller-provided XML stream.
+	 * <p>
+	 * This overload allows addon mods to load GUI definitions from their own resources while reusing
+	 * IC2's dynamic GUI parser. The stream is handed to the SAX parser and may be closed during parsing.
+	 * Callers must not reuse it and should still manage acquisition with try-with-resources.
+	 *
+	 * @param is the stream containing the GUI definition XML
+	 * @param baseClass the class used to resolve {@code base.*} text expressions
+	 * @return the parsed GUI definition
+	 * @throws SAXException if the XML or GUI definition is invalid
+	 * @throws IOException if the stream cannot be read
+	 */
+	public static GuiParser.GuiNode parse(InputStream is, Class<?> baseClass) throws SAXException, IOException
 	{
 		is = new BufferedInputStream(is);
 		SAXParserFactory factory = SAXParserFactory.newInstance();
